@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
 import { OnModuleInit, OnModuleDestroy, Injectable } from '@nestjs/common';
-import { type Err, Result } from '../result-pattern/result';
+import { Result, type Err } from '../result-pattern/result';
 
 export interface HSetAllTypes {
   key: string;
@@ -28,24 +28,26 @@ export interface HExpTypes {
 export type HGetAll = { key: string };
 
 export abstract class MemoryAbstract {
-  abstract hSetAll({
-    key,
-    value,
-  }: HSetAllTypes): Promise<Err<string> | undefined>;
+  abstract hSetAll({ key, value }: HSetAllTypes): Promise<number | Err<string>>;
   abstract hSetBy({
     key,
     field,
     value,
-  }: HSetByTypes): Promise<Err<string> | undefined>;
-  abstract hGetAll({ key }: HGetAll): Promise<Err<string> | undefined>;
-  abstract hGetBy({ key, field }: XTypes): Promise<Err<string> | undefined>;
-  abstract hDelBy({ key, field }: XTypes): Promise<Err<string> | undefined>;
+  }: HSetByTypes): Promise<number | Err<string>>;
+  abstract hGetAll({ key }: HGetAll): Promise<
+    | Err<string>
+    | {
+        [x: string]: string;
+      }
+  >;
+  abstract hGetBy({ key, field }: XTypes): Promise<string | Err<string> | null>;
+  abstract hDelBy({ key, field }: XTypes): Promise<number | Err<string>>;
   abstract hExp({
     key,
     field,
     seconds,
     mode,
-  }: HExpTypes): Promise<Err<string> | undefined>;
+  }: HExpTypes): Promise<Err<string> | number[]>;
 }
 
 @Injectable()
@@ -65,27 +67,24 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
   }
 
   async onModuleDestroy() {
-    this.client = createClient({
-      url: 'redis://127.0.0.1:6379',
-    });
-
     this.client.on('error', (err: unknown) =>
       console.log('Redis Client Error', err),
     );
+
     this.client.destroy();
   }
 
   public async hSetAll({ key, value }: HSetAllTypes) {
     try {
-      await this.client.hSet(key, value);
+      return await this.client.hSet(key, value);
     } catch (e: any) {
-      return Result.err(`Error: ${e}`);
+      return Result.err('Ops, error:' + e);
     }
   }
 
   public async hSetBy({ key, field, value }: HSetByTypes) {
     try {
-      await this.client.hSet(key, field, value);
+      return await this.client.hSet(key, field, value);
     } catch (e: any) {
       return Result.err(`Error: ${e}`);
     }
@@ -93,7 +92,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
 
   public async hGetAll({ key }: HGetAll) {
     try {
-      await this.client.hGetAll(key);
+      return await this.client.hGetAll(key);
     } catch (e: any) {
       return Result.err(`Error: ${e}`);
     }
@@ -101,7 +100,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
 
   public async hGetBy({ key, field }: XTypes) {
     try {
-      await this.client.hGet(key, field);
+      return await this.client.hGet(key, field);
     } catch (e: any) {
       return Result.err(`Error: ${e}`);
     }
@@ -109,7 +108,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
 
   public async hDelBy({ key, field }: XTypes) {
     try {
-      await this.client.hDel(key, field);
+      return await this.client.hDel(key, field);
     } catch (e: any) {
       return Result.err(`Error: ${e}`);
     }
@@ -117,7 +116,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
 
   public async hExp({ key, field, seconds, mode }: HExpTypes) {
     try {
-      await this.client.hExpire(key, field, seconds, mode);
+      return (await this.client.hExpire(key, field, seconds, mode)) as number[];
     } catch (e: any) {
       return Result.err(`Error: ${e}`);
     }
