@@ -4,15 +4,14 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { UnitOfWorkAbstract } from '../../../shared/uniOfWork/unitOfWork';
+import { UnitOfWorkAbstract } from '../../uniOfWork/unitOfWork';
 import { TaskService } from '../../../task/task.service';
 import { CategoryService } from '../../../category/category.service';
 import { CreateRotinaDto } from './create-rotina.dto';
-import { Result } from '../../../shared/result-pattern/result';
+import { Result } from '../../result-pattern/result';
 import { EntityManager } from '@mikro-orm/postgresql';
 import { Task } from '../../../task/task.entity';
 import { Category } from '../../../category/category.entity';
-import { Builder } from 'builder-pattern';
 import { UserService } from '../../../user/user.service';
 
 @Injectable()
@@ -45,26 +44,43 @@ export class CreateRotinaService {
         });
       }
 
-      const createCategoryBuilder = Builder<Category>()
-        .description(createRotinaDto.descriptionsCategory)
-        .title(createRotinaDto.titleCategory)
-        .build();
+      const findExistsTitleCategory =
+        await this.categoryService.verifyTitleCategory(
+          createRotinaDto.titleCategory,
+        );
 
-      const createTaskBuilder = Builder<Task>()
-        .description(createRotinaDto.descriptionTask)
-        .status('incompleta')
-        .title(createRotinaDto.titleTask)
-        .build();
+      if (!findExistsTitleCategory.success) {
+        throw new ConflictException(findExistsTitleCategory.error);
+      }
+
+      const descriptionCategoy = createRotinaDto.descriptionCategory.trim()
+        ? createRotinaDto.descriptionCategory.trim()
+        : null;
 
       const createCategory = em.create(Category, {
-        ...createCategoryBuilder,
+        title: createRotinaDto.titleCategory,
+        description: descriptionCategoy,
         user: findUserExists,
       });
 
       this.unitOfWork.state(createCategory);
 
+      const findExistsTitleTask = await this.taskService.verifyTitleTask(
+        createRotinaDto.titleTask,
+      );
+
+      if (!findExistsTitleTask.success) {
+        throw new ConflictException(findExistsTitleTask.error);
+      }
+
+      const descriptionTask = createRotinaDto.descriptionTask.trim()
+        ? createRotinaDto.descriptionTask.trim()
+        : null;
+
       const createTask = em.create(Task, {
-        ...createTaskBuilder,
+        title: createRotinaDto.titleTask,
+        description: descriptionTask,
+        status: 'incompleta',
         user: findUserExists,
         category: createCategory,
       });
@@ -72,8 +88,6 @@ export class CreateRotinaService {
       this.unitOfWork.state(createTask);
 
       try {
-        await this.unitOfWork.commit();
-
         return Result.ok('Opa, tarefa criada com sucesso');
       } catch (e: any) {
         throw new InternalServerErrorException({
