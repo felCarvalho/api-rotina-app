@@ -24,6 +24,8 @@ export class TaskService {
     if (findExistsTitle) {
       return Result.err('Ops, esse titulo já existe');
     }
+
+    return Result.ok('Opa, titulo de tarefa não existe');
   }
 
   async createTasks(task: Task, user: User, category: Category) {
