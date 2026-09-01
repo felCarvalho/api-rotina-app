@@ -9,7 +9,7 @@ export const categorySchema = defineEntity({
   repository: () => CategoryRepository,
   properties: {
     title: p.string().unique(),
-    description: p.string(),
+    description: p.string().nullable(),
     user: () => p.manyToOne(User),
   },
 });

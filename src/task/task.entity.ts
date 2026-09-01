@@ -10,7 +10,7 @@ export const taskSchema = defineEntity({
   repository: () => TaskRepository,
   properties: {
     title: p.string().unique(),
-    description: p.string(),
+    description: p.string().nullable(),
     status: p.enum(['concluida', 'incompleta']),
     category: () => p.manyToOne(Category),
     user: () => p.manyToOne(User),
