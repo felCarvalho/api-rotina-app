@@ -8,9 +8,10 @@ async function bootstrap() {
 
   app.enableCors({
     origin: 'http://localhost:4200',
+    credentials: true,
   });
 
-  app.use(cookieParser());
+  app.use(cookieParser(process.env.SECRET_COOKIES));
 
   const config = new DocumentBuilder()
     .setTitle('Cats example')
