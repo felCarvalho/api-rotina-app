@@ -20,6 +20,7 @@ export class TokenStrategy extends PassportStrategy(Strategy, 'jwt') {
     exp: number;
     iat: number;
   }) {
+    console.log(payload.sub + 'payload');
     return payload;
   }
 }
