@@ -13,7 +13,7 @@ export class CreateRotinaDto {
   descriptionTask: string;
 
   @IsString()
-  descriptionsCategory: string;
+  descriptionCategory: string;
 
   @IsNotEmpty()
   @IsString()
