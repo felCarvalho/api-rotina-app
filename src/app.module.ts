@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { userSchema } from './user/user.entity';
@@ -21,6 +26,8 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { CategoryModule } from './category/category.module';
 import { ModuleCore } from './shared/moduleCore/module.core';
 import { CreateRotinaModule } from './shared/orchestrators/create-rotina/create-rotina.module';
+import { AuthMiddleware } from './middleware/auth.middleware';
+import { RefreshTokenMiddleware } from './middleware/refresh.middleware';
 
 @Module({
   imports: [
@@ -83,4 +90,21 @@ import { CreateRotinaModule } from './shared/orchestrators/create-rotina/create-
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes(
+      {
+        path: 'task/all/user',
+        method: RequestMethod.GET,
+      },
+      {
+        path: 'task/create',
+        method: RequestMethod.POST,
+      },
+    );
+    consumer.apply(RefreshTokenMiddleware).forRoutes({
+      path: 'auth/refresh',
+      method: RequestMethod.GET,
+    });
+  }
+}
