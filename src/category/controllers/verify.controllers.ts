@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Post } from '@nestjs/common';
-import { CategoryService } from './category.service';
+import { CategoryService } from '../category.service';
 
-@Controller('category')
-export class CategoryController {
+@Controller('verify/category')
+export class VerfiyController {
   constructor(private readonly service: CategoryService) {}
 
   @Get('title/check/:title')

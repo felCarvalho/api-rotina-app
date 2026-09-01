@@ -3,7 +3,7 @@ import { Credentials } from './entity/credentials.entity';
 import { PassHash } from './entity/passHash.entity';
 import { RefreshToken } from './entity/refresh-token.entity';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { AuthenticationController } from './authentication.controller';
+import { AuthenticationController } from './controllers/authentication.controller';
 import { AuthenticationService } from './authencation.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
