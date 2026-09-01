@@ -2,13 +2,13 @@ import { CategoryRepository } from './category.repository';
 import { Result } from '../shared/result-pattern/result';
 import { Category } from './category.entity';
 import { User } from '../user/user.entity';
-import { ConflictException } from '@nestjs/common';
-import { Builder } from 'builder-pattern';
+import { ConflictException, Injectable } from '@nestjs/common';
 
+@Injectable()
 export class CategoryService {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
-  private async findAll(userId: string) {
+  async findAll(userId: string) {
     if (!userId) {
       return Result.err('Id de usuario inválido');
     }
@@ -28,9 +28,13 @@ export class CategoryService {
     const findExistsTitle =
       await this.categoryRepository.findCategoryByTitle(title);
 
+    console.log(findExistsTitle + 'category');
+
     if (findExistsTitle) {
       return Result.err('Ops, essa titulo já existe');
     }
+
+    return Result.ok('Opa, titulo de categoria não existe');
   }
 
   public async createCategory(user: User, category: Category) {
