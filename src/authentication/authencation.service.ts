@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CredentialsRepository } from './repository/credentials.repository';
 import { PasswordHashRepository } from './repository/pashHash.repository';
 import { RefreshTokenRepository } from './repository/refresh-token.repository';
@@ -126,10 +126,9 @@ export class AuthenticationService {
       deleted_at: null,
     });
 
-    try {
-      this.unitOfWork.state(refreshTokenCreated);
-      await this.unitOfWork.save();
+    this.unitOfWork.state(refreshTokenCreated);
 
+    try {
       const sessionId = uuidv4();
 
       await this.memory.hSetAll({
@@ -146,6 +145,8 @@ export class AuthenticationService {
         field: 'refreshToken',
         seconds: 60 * 60 * 24,
       });
+
+      await this.unitOfWork.save();
 
       return sessionId;
     } catch (e: any) {
@@ -227,7 +228,7 @@ export class AuthenticationService {
         identifier: refreshTokenPayload.identifier,
         sub: refreshTokenPayload.sub,
         role: refreshTokenPayload.role,
-        tokenId: refreshTokenPayload.tokenId,
+        tokenId: uuidv4(),
       },
       {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
@@ -250,15 +251,33 @@ export class AuthenticationService {
     this.refreshTokenRepository.createRefreshToken(refreshTokenCreatedInitial);
 
     try {
-      await this.unitOfWork.commit();
+      const sessionId = uuidv4();
 
-      return { accessTokenCreated, refreshTokenCreated };
+      //salva os tokens de acesso e refresh
+      await this.memory.hSetAll({
+        key: `sessionId:${sessionId}`,
+        value: {
+          accessToken: accessTokenCreated,
+          refreshToken: refreshTokenCreated,
+        },
+      });
+
+      //tempos de expirações de acordo com as durações de ambos
+      await this.memory.hExp({
+        key: `sessionId:${sessionId}`,
+        field: 'accessToken',
+        seconds: 60 * 15,
+      });
+      await this.memory.hExp({
+        key: `sessionId:${sessionId}`,
+        field: 'refreshToken',
+        seconds: 60 * 60 * 24,
+      });
+
+      //commit para salvar no db
+      await this.unitOfWork.commit();
     } catch (e: any) {
-      findRefreshToken.status = 'inativo';
-
-      await this.unitOfWork.commit();
-
-      return null;
+      throw new InternalServerErrorException(`error:: ${e}`);
     }
   }
 
@@ -278,7 +297,7 @@ export class AuthenticationService {
       await this.credentialsRepository.findCredByIdentifier(identifier);
 
     if (findIdentifier) {
-      return Result.err('Ops, esse email já está em uso');
+      return Result.err('Ops, esse email já existe');
     }
   }
 
