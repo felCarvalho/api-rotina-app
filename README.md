@@ -187,15 +187,15 @@ docker-compose down
 | Método | Caminho | Auth | Descrição |
 |--------|---------|------|-----------|
 | `GET` | `/verify/credentials/check/:identifier` | Não | Verifica se o email/identifier já existe |
-| `GET` | `/verify/task/title/check/:title` | Não | Verifica se o título da task já existe |
-| `GET` | `/verify/category/title/check/:title` | Não | Verifica se o título da categoria já existe |
+| `GET` | `/verify/task/title/check/:title` | JWT | Verifica se o título da task já existe |
+| `GET` | `/verify/category/title/check/:title` | JWT | Verifica se o título da categoria já existe |
 
 ### Task
 
 | Método | Caminho | Auth | Descrição |
 |--------|---------|------|-----------|
-| `GET` | `/task/all/user` | JWT (cookie) | Lista todas as tasks do usuário autenticado |
-| `POST` | `/task/create` | JWT (guard) | Cria uma task + category (orchestrator) |
+| `GET` | `/task/all/user` | JWT | Lista todas as tasks do usuário autenticado |
+| `POST` | `/task/create` | JWT | Cria uma task + category (orchestrator) |
 
 ### Account
 
@@ -242,10 +242,17 @@ docker-compose down
 
 ### Rotas Protegidas
 
-Duas camadas de proteção são utilizadas:
+Todas as rotas de Task e Category são protegidas por JWT:
 
-- **`AuthMiddleware`** — Aplicado em `GET /task/all/user` e `POST /task/create`. Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
-- **`JwtAuthGuard`** — Guard do Passport aplicado via `@UseGuards(JwtAuthGuard)` no controller `CreateRotinaController`.
+- **`AuthMiddleware`** — Aplicado em `GET /task/all/user` e `POST /task/create` via `AppModule.configure()`. Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
+- **`JwtAuthGuard`** — Guard do Passport aplicado via `@UseGuards(JwtAuthGuard)` nos controllers:
+  - `CreateRotinaController` (`POST /task/create`)
+  - `TaskController` (`GET /task/all/user`)
+  - `VerifyController` (task) (`GET /verify/task/title/check/:title`)
+  - `CategoryController` (`GET /category/...`)
+  - `VerfiyController` (category) (`GET /verify/category/title/check/:title`)
+
+> As rotas de **Account** (`POST /account/create`), **User** (`GET /user/username/check/:name`) e **Credentials** (`GET /verify/credentials/check/:identifier`) permanecem públicas.
 
 ---
 
