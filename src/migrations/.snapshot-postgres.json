@@ -48,7 +48,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "unique": false,
           "length": 255,
           "precision": null,
@@ -1026,7 +1026,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "unique": false,
           "length": 255,
           "precision": null,
@@ -1069,7 +1069,8 @@
           "comment": null,
           "collation": null,
           "enumItems": [
-            "concluida, incompleta"
+            "concluida",
+            "incompleta"
           ],
           "mappedType": "enum"
         },
@@ -1150,8 +1151,8 @@
       "checks": [
         {
           "name": "task_status_check",
-          "expression": "\"status\" in ('concluida, incompleta')",
-          "definition": "check (\"status\" in ('concluida, incompleta'))",
+          "expression": "\"status\" in ('concluida', 'incompleta')",
+          "definition": "check (\"status\" in ('concluida', 'incompleta'))",
           "columnName": "status"
         }
       ],
