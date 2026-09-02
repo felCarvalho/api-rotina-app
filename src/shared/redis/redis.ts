@@ -34,13 +34,10 @@ export abstract class MemoryAbstract {
     field,
     value,
   }: HSetByTypes): Promise<number | Err<string>>;
-  abstract hGetAll({ key }: HGetAll): Promise<
-    | Err<string>
-    | {
-        [x: string]: string;
-      }
-  >;
-  abstract hGetBy({ key, field }: XTypes): Promise<string | Err<string> | null>;
+  abstract hGetAll({ key }: HGetAll): Promise<{
+    [x: string]: string;
+  }>;
+  abstract hGetBy({ key, field }: XTypes): Promise<string | null>;
   abstract hDelBy({ key, field }: XTypes): Promise<number | Err<string>>;
   abstract hExp({
     key,
@@ -94,7 +91,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
     try {
       return await this.client.hGetAll(key);
     } catch (e: any) {
-      return Result.err(`Error: ${e}`);
+      throw e;
     }
   }
 
@@ -102,7 +99,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
     try {
       return await this.client.hGet(key, field);
     } catch (e: any) {
-      return Result.err(`Error: ${e}`);
+      return e;
     }
   }
 
@@ -110,7 +107,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
     try {
       return await this.client.hDel(key, field);
     } catch (e: any) {
-      return Result.err(`Error: ${e}`);
+      return e;
     }
   }
 
