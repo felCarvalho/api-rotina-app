@@ -28,6 +28,10 @@ import { ModuleCore } from './shared/moduleCore/module.core';
 import { CreateRotinaModule } from './shared/orchestrators/create-rotina/create-rotina.module';
 import { AuthMiddleware } from './middleware/auth.middleware';
 import { RefreshTokenMiddleware } from './middleware/refresh.middleware';
+import { TaskController } from './task/controllers/task.controller';
+import { VerifyTaskController } from './task/controllers/verify.controllers';
+import { CategoryController } from './category/controllers/category.controller';
+import { VerfiyCategoryController } from './category/controllers/verify.controllers';
 
 @Module({
   imports: [
@@ -92,19 +96,19 @@ import { RefreshTokenMiddleware } from './middleware/refresh.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes(
-      {
-        path: 'task/all/user',
-        method: RequestMethod.GET,
-      },
-      {
-        path: 'task/create',
-        method: RequestMethod.POST,
-      },
-    );
+    consumer.apply(AuthMiddleware).forRoutes({
+      path: 'task/create',
+      method: RequestMethod.POST,
+    });
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes(TaskController, VerifyTaskController);
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes(CategoryController, VerfiyCategoryController);
     consumer.apply(RefreshTokenMiddleware).forRoutes({
       path: 'auth/refresh',
-      method: RequestMethod.GET,
+      method: RequestMethod.POST,
     });
   }
 }
