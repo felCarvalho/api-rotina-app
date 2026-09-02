@@ -3,7 +3,7 @@ import { User } from '../user/user.entity';
 
 export class UserRepository extends EntityRepository<User> {
   async findByUserId(id: string) {
-    return await this.findOne({ id }, { populate: ['userRoles'] });
+    return await this.findOne({ id }, { populate: ['userRoles.role'] });
   }
 
   async findName(name: string) {
