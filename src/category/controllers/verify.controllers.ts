@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../authentication/guards/jwt.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('verify/category')
-export class VerfiyController {
+export class VerfiyCategoryController {
   constructor(private readonly service: CategoryService) {}
 
   @Get('title/check/:title')
