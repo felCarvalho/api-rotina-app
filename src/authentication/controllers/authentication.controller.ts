@@ -37,12 +37,10 @@ export class AuthenticationController {
   @UseInterceptors(CookiesTokensInterceptor)
   @Post('refresh')
   async refresh(
-    @User() user: { refreshToken: string; payload: RefreshTokenPayload },
+    @User()
+    user: { payload: RefreshTokenPayload; sessionId: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    return await this.service.verifyRefreshToken(
-      user.refreshToken,
-      user.payload,
-    );
+    return await this.service.verifyRefreshToken(user.payload, user.sessionId);
   }
 }

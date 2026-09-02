@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CredentialsRepository } from './repository/credentials.repository';
 import { PasswordHashRepository } from './repository/pashHash.repository';
 import { RefreshTokenRepository } from './repository/refresh-token.repository';
@@ -34,7 +39,6 @@ export class AuthenticationService {
 
   async validateUser(identifier: string, passHash: string) {
     if (!identifier.trim() || !passHash.trim()) {
-      console.log(1);
       return null;
     }
 
@@ -42,7 +46,6 @@ export class AuthenticationService {
       await this.credentialsRepository.findCredByIdentifier(identifier);
 
     if (!findIdentifier) {
-      console.log(2);
       return null;
     }
 
@@ -51,14 +54,12 @@ export class AuthenticationService {
     );
 
     if (!findPassHash) {
-      console.log(3);
       return null;
     }
 
     const passwordMatch = await argon2.verify(findPassHash.hash, passHash);
 
     if (!passwordMatch) {
-      console.log(4);
       return null;
     }
 
@@ -86,7 +87,7 @@ export class AuthenticationService {
     const accessToken = await this.jwtService.signAsync({
       identifier: identifier,
       sub: userId,
-      role: userRole?.role.name,
+      role: userRole?.role.slug,
     });
 
     if (!accessToken) {
@@ -99,12 +100,14 @@ export class AuthenticationService {
       return Result.err('problemas ao encontrar seu usuário');
     }
 
+    const tokenId = uuidv4();
+
     const refreshToken = await this.jwtService.signAsync(
       {
         identifier: identifier,
         sub: userId,
         role: userRole?.role.name,
-        tokenId: uuidv4(),
+        tokenId,
       },
       {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
@@ -122,7 +125,7 @@ export class AuthenticationService {
       user: user,
       created_at: date,
       updated_at: date,
-      id: uuidv4(),
+      id: tokenId,
       deleted_at: null,
     });
 
@@ -138,7 +141,7 @@ export class AuthenticationService {
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
         field: 'accessToken',
-        seconds: 60 * 15,
+        seconds: 60 * 1,
       });
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
@@ -159,16 +162,38 @@ export class AuthenticationService {
   }
 
   public async verifyRefreshToken(
-    refreshToken: string,
     refreshTokenPayload: RefreshTokenPayload,
+    sessionId: string,
   ) {
+    /*  const identifier = refreshTokenPayload.identifier;
+    const dateCreate = refreshTokenPayload.iat;
+    const dateExp = refreshTokenPayload.exp;
+    const role = refreshTokenPayload.role;
+    const userId = refreshTokenPayload.sub;
+    const tokenId = refreshTokenPayload.tokenId;
+    console.log('identifier: ' + identifier);
+    console.log('dateCreate: ' + dateCreate);
+    console.log('dateExp; ' + dateExp);
+    console.log('role: ' + role);
+    console.log('userId: ' + userId);
+    console.log('tokenId: ' + tokenId);*/
     if (
-      !refreshToken ||
+      !sessionId ||
       !refreshTokenPayload.identifier ||
       !refreshTokenPayload.sub ||
       !refreshTokenPayload.role ||
       !refreshTokenPayload.tokenId
     ) {
+      console.log(1);
+      return null;
+    }
+
+    const findRefreshTokenStore = await this.memory.hGetBy({
+      key: `sessionId:${sessionId}`,
+      field: 'refreshToken',
+    });
+
+    if (!findRefreshTokenStore) {
       return null;
     }
 
@@ -178,6 +203,7 @@ export class AuthenticationService {
       );
 
     if (!findCredentials) {
+      console.log(2);
       return null;
     }
 
@@ -186,6 +212,7 @@ export class AuthenticationService {
     );
 
     if (!findUser) {
+      console.log(3);
       return null;
     }
 
@@ -194,16 +221,24 @@ export class AuthenticationService {
         refreshTokenPayload.tokenId,
       );
 
+    if (findRefreshToken?.status === 'inativo') {
+      throw new UnauthorizedException(
+        'Ops, token de longa duração expirado ou inválido',
+      );
+    }
+
     if (!findRefreshToken) {
+      console.log(4);
       return null;
     }
 
     const compareRefreshToken = await argon2.verify(
-      refreshToken,
       findRefreshToken.refreshHash,
+      findRefreshTokenStore,
     );
 
     if (!compareRefreshToken) {
+      console.log(5);
       return null;
     }
 
@@ -215,20 +250,22 @@ export class AuthenticationService {
       },
       {
         secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
-        expiresIn: '15m',
       },
     );
 
     if (!accessTokenCreated) {
+      console.log(6);
       return null;
     }
+
+    const tokenId = uuidv4();
 
     const refreshTokenCreated = await this.jwtService.signAsync(
       {
         identifier: refreshTokenPayload.identifier,
         sub: refreshTokenPayload.sub,
         role: refreshTokenPayload.role,
-        tokenId: uuidv4(),
+        tokenId: tokenId,
       },
       {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
@@ -237,21 +274,28 @@ export class AuthenticationService {
     );
 
     if (!refreshTokenCreated) {
+      console.log(7);
       return null;
     }
 
-    const refreshTokenHash = await argon2.hash(refreshToken);
+    const refreshTokenHash = await argon2.hash(refreshTokenCreated);
 
-    const refreshTokenCreatedInitial = Builder<RefreshToken>()
-      .status('ativo')
-      .user(findUser)
-      .refreshHash(refreshTokenHash)
-      .build();
+    const date = new Date();
 
-    this.refreshTokenRepository.createRefreshToken(refreshTokenCreatedInitial);
+    this.refreshTokenRepository.createRefreshToken({
+      id: tokenId,
+      user: findUser,
+      status: 'ativo',
+      refreshHash: refreshTokenHash,
+      created_at: date,
+      updated_at: date,
+      deleted_at: null,
+    });
 
     try {
       const sessionId = uuidv4();
+
+      findRefreshToken.status = 'inativo';
 
       //salva os tokens de acesso e refresh
       await this.memory.hSetAll({
@@ -266,7 +310,7 @@ export class AuthenticationService {
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
         field: 'accessToken',
-        seconds: 60 * 15,
+        seconds: 60 * 1,
       });
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
@@ -274,8 +318,10 @@ export class AuthenticationService {
         seconds: 60 * 60 * 24,
       });
 
-      //commit para salvar no db
-      await this.unitOfWork.commit();
+      //save para salvar no db
+      await this.unitOfWork.save();
+
+      return sessionId;
     } catch (e: any) {
       throw new InternalServerErrorException(`error:: ${e}`);
     }

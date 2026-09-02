@@ -5,12 +5,15 @@ import { RefreshTokenRepository } from '../repository/refresh-token.repository';
 
 export const refreshTokenSchema = defineEntity({
   name: 'refreshToken',
-  extends: BaseEntity,
   repository: () => RefreshTokenRepository,
   properties: {
+    id: p.string().primary(),
     user: () => p.manyToOne(User),
     status: p.enum(['ativo', 'inativo']),
     refreshHash: p.string(),
+    created_at: p.datetime().defaultRaw('NOW()'),
+    updated_at: p.datetime().defaultRaw('NOW()'),
+    deleted_at: p.datetime().nullable(),
   },
 });
 

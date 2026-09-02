@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthenticationService } from '../authencation.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenPayload } from '../../shared/interface/interface';
-import { UnauthorizedException } from '@nestjs/common';
+import { Request } from 'express';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
@@ -23,16 +23,10 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  validate(req: Express.Request, payload: RefreshTokenPayload) {
-    const refreshToken = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-
-    if (!refreshToken) {
-      throw new UnauthorizedException('Token não encontrado');
-    }
-
+  validate(req: Request, payload: RefreshTokenPayload) {
     return {
-      payload,
-      refreshToken,
+      sessionId: req.cookies.sessionId,
+      payload: payload,
     };
   }
 }
