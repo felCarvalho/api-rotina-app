@@ -244,13 +244,13 @@ docker-compose down
 
 Todas as rotas de Task e Category são protegidas por JWT:
 
-- **`AuthMiddleware`** — Aplicado em `GET /task/all/user` e `POST /task/create` via `AppModule.configure()`. Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
+- **`AuthMiddleware`** — Aplicado via `AppModule.configure()` em `POST /task/create` (por path/method) e nos controllers `TaskController`, `VerifyTaskController`, `CategoryController` e `VerfiyCategoryController` (por classe). Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
 - **`JwtAuthGuard`** — Guard do Passport aplicado via `@UseGuards(JwtAuthGuard)` nos controllers:
   - `CreateRotinaController` (`POST /task/create`)
   - `TaskController` (`GET /task/all/user`)
-  - `VerifyController` (task) (`GET /verify/task/title/check/:title`)
+  - `VerifyTaskController` (`GET /verify/task/title/check/:title`)
   - `CategoryController` (`GET /category/...`)
-  - `VerfiyController` (category) (`GET /verify/category/title/check/:title`)
+  - `VerfiyCategoryController` (`GET /verify/category/title/check/:title`)
 
 > As rotas de **Account** (`POST /account/create`), **User** (`GET /user/username/check/:name`) e **Credentials** (`GET /verify/credentials/check/:identifier`) permanecem públicas.
 
@@ -406,9 +406,13 @@ src/
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
+| `id` | `string` | Chave primária |
 | `user` | `ManyToOne` | Referência para User |
 | `status` | `enum` | `ativo` ou `inativo` |
 | `refreshHash` | `string` | Hash Argon2 do refresh token |
+| `created_at` | `datetime` | Data de criação (NOW()) |
+| `updated_at` | `datetime` | Data de atualização (NOW()) |
+| `deleted_at` | `datetime` | Soft delete (nullable) |
 
 ---
 
