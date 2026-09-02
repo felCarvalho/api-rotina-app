@@ -48,7 +48,7 @@
 
 - **Autenticação completa** — Login com JWT access tokens (15min) e refresh tokens (24h)
 - **Sessões via Redis** — Tokens armazenados no Redis com TTL independente, acessados via cookie httpOnly
-- **CRUD de tarefas** — Criação, listagem e verificação de tasks com status (`concluida` / `incompleta`)
+- **CRUD de tarefas** — Criação, listagem, atualização e verificação de tasks com status (`concluida` / `incompleta`)
 - **Categorias** — Organização de tarefas por categorias
 - **RBAC** — Controle de acesso baseado em papéis (USER, ADMIN, GUEST) e permissões (CREATE, DELETE, UPDATE, READ)
 - **Soft delete** — Entidades não são removidas fisicamente do banco
@@ -196,6 +196,8 @@ docker-compose down
 |--------|---------|------|-----------|
 | `GET` | `/task/all/user` | JWT | Lista todas as tasks do usuário autenticado |
 | `POST` | `/task/create` | JWT | Cria uma task + category (orchestrator) |
+| `PATCH` | `/task/update/title/description/:taskId` | JWT | Atualiza título e descrição da tarefa |
+| `PATCH` | `/task/update/status/:taskId` | JWT | Atualiza o status da tarefa (concluida/incompleta) |
 
 ### Account
 
