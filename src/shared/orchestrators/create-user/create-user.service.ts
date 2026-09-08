@@ -115,6 +115,8 @@ export class CreateUserService {
       });
 
       this.unitOfWork.state(createPassHash);
+
+      return Result.ok('Opa, usuário criado com sucesso!');
     });
   }
 }
