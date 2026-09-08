@@ -4,6 +4,7 @@ import { PassHash } from './entity/passHash.entity';
 import { RefreshToken } from './entity/refresh-token.entity';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { AuthenticationController } from './controllers/authentication.controller';
+import { VerifyAuthenticationController } from './controllers/verify.controllers';
 import { AuthenticationService } from './authencation.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -41,7 +42,7 @@ import { RefreshTokenStrategy } from './strategy/refresh-token.strategy';
       }),
     }),
   ],
-  controllers: [AuthenticationController],
+  controllers: [AuthenticationController, VerifyAuthenticationController],
   providers: [
     AuthenticationService,
     LocalStrategy,

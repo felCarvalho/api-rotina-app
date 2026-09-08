@@ -1,8 +1,8 @@
 import { Controller, Param, Get } from '@nestjs/common';
 import { AuthenticationService } from '../authencation.service';
 
-@Controller('verify')
-export class VerifyControllers {
+@Controller('verify/auth')
+export class VerifyAuthenticationController {
   constructor(private readonly service: AuthenticationService) {}
 
   //controllers de verificação do usuário
