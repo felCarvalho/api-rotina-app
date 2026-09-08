@@ -37,7 +37,12 @@ import { VerfiyCategoryController } from './category/controllers/verify.controll
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.database', '.env.secrets.jwt', '.env'],
+      envFilePath: [
+        '.env.database',
+        '.env.secrets.jwt',
+        '.env',
+        '.env.github.0Auth',
+      ],
     }),
     TaskModule,
     CreateUserModule,
