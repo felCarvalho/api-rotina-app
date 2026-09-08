@@ -3,11 +3,12 @@ import {
   Post,
   Body,
   UseGuards,
-  Get,
   Param,
   Res,
   UseInterceptors,
+  Get,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthenticationService } from '../authencation.service';
 import { LocalAuthGuard } from '../guards/local.guard';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh.guard';
@@ -18,7 +19,10 @@ import { CookiesTokensInterceptor } from '../../interceptor/cookies.interceptor'
 
 @Controller('auth')
 export class AuthenticationController {
-  constructor(private readonly service: AuthenticationService) {}
+  constructor(
+    private readonly service: AuthenticationService,
+    private readonly configService: ConfigService,
+  ) {}
 
   //controller de login
   @UseGuards(LocalAuthGuard)
