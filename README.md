@@ -48,8 +48,9 @@
 
 - **Autenticação completa** — Login com JWT access tokens (15min) e refresh tokens (24h)
 - **Sessões via Redis** — Tokens armazenados no Redis com TTL independente, acessados via cookie httpOnly
-- **CRUD de tarefas** — Criação, listagem, atualização e verificação de tasks com status (`concluida` / `incompleta`)
+- **CRUD de tarefas** — Criação, listagem, atualização e verificação de tasks com status (`concluida` / `incompleta`), com validação de título duplicado
 - **Categorias** — Organização de tarefas por categorias
+- **Login com GitHub** — 🔜 Em desenvolvimento
 - **RBAC** — Controle de acesso baseado em papéis (USER, ADMIN, GUEST) e permissões (CREATE, DELETE, UPDATE, READ)
 - **Soft delete** — Entidades não são removidas fisicamente do banco
 - **Validação** — DTOs com `class-validator` para validação automática de entradas
@@ -100,7 +101,7 @@ pnpm install
 
 ## Configuração
 
-O projeto utiliza 3 arquivos de variáveis de ambiente. Crie os arquivos na raiz do projeto:
+O projeto utiliza 4 arquivos de variáveis de ambiente. Crie os arquivos na raiz do projeto:
 
 ### `.env` — Configurações da aplicação
 
@@ -125,6 +126,13 @@ POSTGRES_HOST=localhost
 ```env
 JWT_ACCESS_TOKEN_SECRET=seu_secret_access_token
 JWT_REFRESH_TOKEN_SECRET=seu_secret_refresh_token
+```
+
+### `.env.github.0Auth` — OAuth do GitHub (opcional)
+
+```env
+GITHUB_CLIENT_ID=seu_client_id
+GITHUB_CLIENT_SECRET=seu_client_secret
 ```
 
 > ⚠️ Nunca commite arquivos `.env` no repositório. O `.gitignore` já está configurado para ignorá-los.
@@ -186,7 +194,7 @@ docker-compose down
 
 | Método | Caminho | Auth | Descrição |
 |--------|---------|------|-----------|
-| `GET` | `/verify/credentials/check/:identifier` | Não | Verifica se o email/identifier já existe |
+| `GET` | `/verify/auth/credentials/check/:identifier` | Não | Verifica se o email/identifier já existe |
 | `GET` | `/verify/task/title/check/:title` | JWT | Verifica se o título da task já existe |
 | `GET` | `/verify/category/title/check/:title` | JWT | Verifica se o título da categoria já existe |
 
@@ -196,7 +204,7 @@ docker-compose down
 |--------|---------|------|-----------|
 | `GET` | `/task/all/user` | JWT | Lista todas as tasks do usuário autenticado |
 | `POST` | `/task/create` | JWT | Cria uma task + category (orchestrator) |
-| `PATCH` | `/task/update/title/description/:taskId` | JWT | Atualiza título e descrição da tarefa |
+| `PATCH` | `/task/update/title/:taskId` | JWT | Atualiza o título da tarefa |
 | `PATCH` | `/task/update/status/:taskId` | JWT | Atualiza o status da tarefa (concluida/incompleta) |
 
 ### Account
@@ -209,7 +217,7 @@ docker-compose down
 
 | Método | Caminho | Auth | Descrição |
 |--------|---------|------|-----------|
-| `GET` | `/user/username/check/:name` | Não | Verifica se o nome de usuário já existe |
+| `GET` | `/verify/user/username/check/:name` | Não | Verifica se o nome de usuário já existe |
 
 ### Documentação
 
@@ -254,7 +262,7 @@ Todas as rotas de Task e Category são protegidas por JWT:
   - `CategoryController` (`GET /category/...`)
   - `VerfiyCategoryController` (`GET /verify/category/title/check/:title`)
 
-> As rotas de **Account** (`POST /account/create`), **User** (`GET /user/username/check/:name`) e **Credentials** (`GET /verify/credentials/check/:identifier`) permanecem públicas.
+> As rotas de **Account** (`POST /account/create`), **User** (`GET /verify/user/username/check/:name`) e **Credentials** (`GET /verify/auth/credentials/check/:identifier`) permanecem públicas.
 
 ---
 
