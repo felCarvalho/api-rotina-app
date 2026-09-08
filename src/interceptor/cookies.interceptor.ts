@@ -19,6 +19,8 @@ export class CookiesTokensInterceptor implements NestInterceptor {
           sameSite: 'lax',
           path: '/',
         });
+
+        return value;
       }),
     );
   }
