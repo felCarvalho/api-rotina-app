@@ -14,18 +14,13 @@ export class TaskController {
     return this.service.findAll(payload.sub);
   }
 
-  @Patch('update/title/description/:taskId')
+  @Patch('update/title/:taskId')
   async updateTitleAndDescriptionTask(
-    @Body() body: { title: string; description: string },
+    @Body() body: { title: string },
     @User() user: AccessTokenPayload,
     @Param('taskId') taskId: string,
   ) {
-    return this.service.updateTitleAndDescriptionTask(
-      body.title,
-      body.description,
-      taskId,
-      user.sub,
-    );
+    return this.service.updateTitleTask(body.title, taskId, user.sub);
   }
 
   @Patch('update/status/:taskId')

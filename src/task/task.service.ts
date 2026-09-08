@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -37,19 +38,16 @@ export class TaskService {
     return Result.ok('Opa, titulo de tarefa não existe');
   }
 
-  async updateTitleAndDescriptionTask(
-    title: string,
-    description: string,
-    taskId: string,
-    userId: string,
-  ) {
+  async updateTitleTask(title: string, taskId: string, userId: string) {
     if (!taskId || !userId) {
       throw new BadRequestException('Id de tarefa ou usuário inválido');
     }
 
-    if (!title.trim() && !description.trim()) {
-      throw new BadRequestException('Título e descrição não podem ser vazios');
+    if (!title) {
+      throw new BadRequestException('Título não podem ser vazios');
     }
+
+    const titleTask = title?.trim();
 
     const findTask = await this.taskRepository.findTaskById(taskId);
 
@@ -61,11 +59,17 @@ export class TaskService {
       throw new ForbiddenException('Tarefa não encontrada');
     }
 
+    const findAllTasksUser = await this.taskRepository.findTaskByTitle(title);
+
+    if (findAllTasksUser) {
+      throw new ConflictException('Ops, esse titulo já existe');
+    }
+
     try {
-      if (title.trim()) findTask.title = title.trim();
-      if (description.trim()) findTask.description = description.trim();
+      if (titleTask.length > 0) findTask.title = titleTask;
 
       await this.unitOfWork.save();
+      return Result.ok('Opa, tarefa atualizada com sucesso!');
     } catch (error) {
       return Result.err('Erro ao salvar tarefa: ' + error);
     }
@@ -98,6 +102,8 @@ export class TaskService {
       if (status.trim()) findTask.status = status;
 
       await this.unitOfWork.save();
+
+      return Result.ok('Opa, status de tarefa atualizado!');
     } catch (error) {
       return Result.err('Erro ao atualizar tarefa: ' + error);
     }

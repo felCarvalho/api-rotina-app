@@ -3,7 +3,11 @@ import { Task } from '../task/task.entity';
 
 export class TaskRepository extends EntityRepository<Task> {
   async findAllTaskUser(user_id: string) {
-    return await this.findAll({ where: { user: user_id }, populate: ['user'] });
+    return await this.findAll({
+      where: { user: user_id },
+      populate: ['user', 'category'],
+      orderBy: { created_at: 'DESC' },
+    });
   }
 
   async findTaskById(id: string) {
