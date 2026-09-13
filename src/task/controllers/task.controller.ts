@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Patch, UseGuards, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Patch,
+  UseGuards,
+  Body,
+  Delete,
+} from '@nestjs/common';
 import { TaskService } from '../task.service';
 import { User } from '../../shared/custom-decorators/user.decorators';
 import type { AccessTokenPayload } from '../../shared/interface/interface';
@@ -11,7 +19,7 @@ export class TaskController {
 
   @Get('all/user')
   async getAllTask(@User() payload: AccessTokenPayload) {
-    return this.service.findAll(payload.sub);
+    return await this.service.findAll(payload.sub);
   }
 
   @Patch('update/title/:taskId')
@@ -20,7 +28,7 @@ export class TaskController {
     @User() user: AccessTokenPayload,
     @Param('taskId') taskId: string,
   ) {
-    return this.service.updateTitleTask(body.title, taskId, user.sub);
+    return await this.service.updateTitleTask(body.title, taskId, user.sub);
   }
 
   @Patch('update/status/:taskId')
@@ -29,6 +37,14 @@ export class TaskController {
     @User() user: AccessTokenPayload,
     @Param('taskId') taskId: string,
   ) {
-    return this.service.updateStatusTask(body.status, taskId, user.sub);
+    return await this.service.updateStatusTask(body.status, taskId, user.sub);
+  }
+
+  @Delete('delete/:taskId')
+  async deleteTask(
+    @User() user: AccessTokenPayload,
+    @Param('taskId') taskId: string,
+  ) {
+    return await this.service.deleteTask(taskId, user.sub);
   }
 }

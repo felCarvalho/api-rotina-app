@@ -125,8 +125,10 @@ export class TaskService {
     }
 
     try {
-      findTask.deleted_at = new Date();
+      findTask.deletedAt = new Date();
       await this.unitOfWork.save();
+
+      return Result.ok('Tarefa deletada com sucesso');
     } catch (error) {
       return Result.err('Erro ao deletar tarefa: ' + error);
     }
