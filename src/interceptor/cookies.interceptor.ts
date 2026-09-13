@@ -16,9 +16,10 @@ export class CookiesTokensInterceptor implements NestInterceptor {
         const res = context.switchToHttp().getResponse<Response>();
         res.cookie('sessionId', value, {
           httpOnly: true,
-          sameSite: 'lax',
+          sameSite: 'none',
           path: '/',
           signed: true,
+          secure: true,
         });
 
         return value;
