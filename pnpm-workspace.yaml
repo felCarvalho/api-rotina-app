@@ -1,5 +1,5 @@
 allowBuilds:
-  '@scarf/scarf': set this to true or false
+  '@scarf/scarf': false
   argon2: false
   esbuild: false
   unrs-resolver: false
