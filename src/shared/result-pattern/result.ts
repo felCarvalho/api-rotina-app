@@ -1,6 +1,6 @@
 export type Ok<T> = {
   success: true;
-  data?: T;
+  data: T;
 };
 
 export type Err<E> = {
@@ -9,6 +9,6 @@ export type Err<E> = {
 };
 
 export const Result = {
-  ok: <T>(data?: T): Ok<T> => ({ data, success: true }),
+  ok: <T>(data: T): Ok<T> => ({ data, success: true }),
   err: <E>(error: E): Err<E> => ({ success: false, error }),
 };
