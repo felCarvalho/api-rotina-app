@@ -24,49 +24,54 @@ export async function seed() {
 
         await RequestContext.create(em.em, async () => {
           for (const rules of Object.values(RULES)) {
-            const findRole = await em.em.findOne(Role, {
+            let createRole = await em.em.findOne(Role, {
               slug: rules,
             });
 
-            if (findRole) {
-              console.log('Rota já existe no db');
-              continue;
-            }
-
-            const createRole = em.em.create(Role, {
-              name: rules,
-              slug: rules,
-              createdAt: date,
-              updatedAt: date,
-            });
-
-            em.em.persist(createRole);
-
-            for (const perm of Object.values(PERMISSIONS)) {
-              const findPermissions = await em.em.findOne(Permissions, {
-                slug: perm,
-              });
-
-              if (findPermissions) {
-                console.log('Essa permissão já existe');
-                continue;
-              }
-
-              const createPermissions = em.em.create(Permissions, {
-                slug: perm,
-                name: perm,
+            if (!createRole) {
+              createRole = em.em.create(Role, {
+                name: rules,
+                slug: rules,
                 createdAt: date,
                 updatedAt: date,
               });
 
-              em.em.persist(createPermissions);
+              em.em.persist(createRole);
+            } else {
+              console.log('Rota já existe no db');
+            }
 
-              const rolesPermissions = em.em.create(RolesPermissions, {
+            for (const perm of Object.values(PERMISSIONS)) {
+              let createPermissions = await em.em.findOne(Permissions, {
+                slug: perm,
+              });
+
+              if (!createPermissions) {
+                createPermissions = em.em.create(Permissions, {
+                  slug: perm,
+                  name: perm,
+                  createdAt: date,
+                  updatedAt: date,
+                });
+
+                em.em.persist(createPermissions);
+              } else {
+                console.log('Essa permissão já existe');
+              }
+
+              const relacaoExiste = await em.em.findOne(RolesPermissions, {
                 role: createRole,
                 permission: createPermissions,
               });
 
-              em.em.persist(rolesPermissions);
+              if (!relacaoExiste) {
+                const rolesPermissions = em.em.create(RolesPermissions, {
+                  role: createRole,
+                  permission: createPermissions,
+                });
+
+                em.em.persist(rolesPermissions);
+              }
             }
           }
 
