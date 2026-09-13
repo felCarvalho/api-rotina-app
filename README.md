@@ -47,9 +47,11 @@
 ## Funcionalidades
 
 - **Autenticação completa** — Login com JWT access tokens (15min) e refresh tokens (24h)
+- **Logout** — Encerramento de sessão com invalidação de tokens no Redis e no banco
 - **Sessões via Redis** — Tokens armazenados no Redis com TTL independente, acessados via cookie httpOnly
 - **CRUD de tarefas** — Criação, listagem, atualização e verificação de tasks com status (`concluida` / `incompleta`), com validação de título duplicado
 - **Categorias** — Organização de tarefas por categorias
+- **Info User** — Consulta de dados do usuário autenticado via orchestrator
 - **Login com GitHub** — 🔜 Em desenvolvimento
 - **RBAC** — Controle de acesso baseado em papéis (USER, ADMIN, GUEST) e permissões (CREATE, DELETE, UPDATE, READ)
 - **Soft delete** — Entidades não são removidas fisicamente do banco
@@ -189,6 +191,7 @@ docker-compose down
 |--------|---------|------|-----------|
 | `POST` | `/auth/login` | Não | Login — retorna sessionId via cookie httpOnly |
 | `POST` | `/auth/refresh` | Cookie | Renova os tokens de acesso e refresh |
+| `POST` | `/auth/logout` | JWT | Encerra a sessão — invalida tokens no Redis e no banco |
 
 ### Verificação
 
@@ -218,6 +221,7 @@ docker-compose down
 | Método | Caminho | Auth | Descrição |
 |--------|---------|------|-----------|
 | `GET` | `/verify/user/username/check/:name` | Não | Verifica se o nome de usuário já existe |
+| `GET` | `/info/user` | JWT | Retorna dados do usuário autenticado (id, name, identifier, timestamps) |
 
 ### Documentação
 
@@ -250,17 +254,30 @@ docker-compose down
 5. Retorna novo sessionId como cookie httpOnly
 ```
 
+### Fluxo de Logout
+
+```
+1. Cliente envia POST /auth/logout (com cookie sessionId)
+2. JwtAuthGuard valida o access token via Passport
+3. Limpa o cookie sessionId
+4. Valida o refresh token do Redis contra o banco de dados
+5. Define status do refresh token como 'inativo' no banco
+6. Remove os campos accessToken e refreshToken da sessão no Redis
+```
+
 ### Rotas Protegidas
 
 Todas as rotas de Task e Category são protegidas por JWT:
 
-- **`AuthMiddleware`** — Aplicado via `AppModule.configure()` em `POST /task/create` (por path/method) e nos controllers `TaskController`, `VerifyTaskController`, `CategoryController` e `VerfiyCategoryController` (por classe). Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
+- **`AuthMiddleware`** — Aplicado via `AppModule.configure()` em `POST /task/create` e `POST /auth/logout` e `GET /info/user` (por path/method) e nos controllers `TaskController`, `VerifyTaskController`, `CategoryController` e `VerfiyCategoryController` (por classe). Lê o cookie `sessionId`, busca o access token no Redis e injeta no header `Authorization`.
 - **`JwtAuthGuard`** — Guard do Passport aplicado via `@UseGuards(JwtAuthGuard)` nos controllers:
   - `CreateRotinaController` (`POST /task/create`)
   - `TaskController` (`GET /task/all/user`)
   - `VerifyTaskController` (`GET /verify/task/title/check/:title`)
   - `CategoryController` (`GET /category/...`)
   - `VerfiyCategoryController` (`GET /verify/category/title/check/:title`)
+  - `GetInfoUserController` (`GET /info/user`)
+  - `AuthenticationController` (`POST /auth/logout`)
 
 > As rotas de **Account** (`POST /account/create`), **User** (`GET /verify/user/username/check/:name`) e **Credentials** (`GET /verify/auth/credentials/check/:identifier`) permanecem públicas.
 
@@ -272,7 +289,7 @@ Todas as rotas de Task e Category são protegidas por JWT:
 
 | Padrão | Descrição |
 |--------|-----------|
-| **Result Pattern** | Union type `Result<T, E>` com `Ok` e `Er` para tratamento de erros sem exceptions |
+| **Result Pattern** | Union type `Result<T, E>` com `Ok` e `Err` para tratamento de erros sem exceptions |
 | **Unit of Work** | Abstração sobre o `EntityManager` do MikroORM para operações transacionais |
 | **Repository** | Abstração de acesso a dados separada da lógica de negócio |
 | **Orchestrator** | Serviços que coordenam múltiplos domínios em uma única transação |
@@ -290,7 +307,8 @@ AppModule
 ├── TaskModule            (entidade Task + controllers)
 ├── CategoryModule        (entidade Category + controllers)
 ├── CreateUserModule      (orchestrator — registro de usuário)
-└── CreateRotinaModule    (orchestrator — criação de task + category)
+├── CreateRotinaModule    (orchestrator — criação de task + category)
+└── GetInfoUserModule     (orchestrator — consulta de dados do usuário)
 ```
 
 ### Diretório `src/`
@@ -315,7 +333,8 @@ src/
 │   ├── moduleCore/module.core.ts     Provedor de UnitOfWork + Memory
 │   └── orchestrators/
 │       ├── create-user/              Orchestrator de registro
-│       └── create-rotina/            Orchestrator de criação de rotina
+│       ├── create-rotina/            Orchestrator de criação de rotina
+│       └── get-info-user/            Orchestrator de consulta de dados do usuário
 ├── user/                             Entidade User + service + controller
 ├── task/                             Entidade Task + service + controllers/
 ├── category/                         Entidade Category + service + controllers/
@@ -341,9 +360,9 @@ src/
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `id` | `UUID v7` | Chave primária (time-sortable) |
-| `created_at` | `datetime` | Data de criação |
-| `updated_at` | `datetime` | Data de atualização |
-| `deleted_at` | `datetime` | Soft delete (nullable) |
+| `createdAt` | `datetime` | Data de criação |
+| `updatedAt` | `datetime` | Data de atualização |
+| `deletedAt` | `datetime` | Soft delete (nullable) |
 
 ### User
 
@@ -420,9 +439,9 @@ src/
 | `user` | `ManyToOne` | Referência para User |
 | `status` | `enum` | `ativo` ou `inativo` |
 | `refreshHash` | `string` | Hash Argon2 do refresh token |
-| `created_at` | `datetime` | Data de criação (NOW()) |
-| `updated_at` | `datetime` | Data de atualização (NOW()) |
-| `deleted_at` | `datetime` | Soft delete (nullable) |
+| `createdAt` | `datetime` | Data de criação (NOW()) |
+| `updatedAt` | `datetime` | Data de atualização (NOW()) |
+| `deletedAt` | `datetime` | Soft delete (nullable) |
 
 ---
 
