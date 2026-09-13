@@ -9,14 +9,11 @@ import { PasswordHashRepository } from './repository/pashHash.repository';
 import { RefreshTokenRepository } from './repository/refresh-token.repository';
 import { UserRepository } from '../user/user.repository';
 import { Result } from '../shared/result-pattern/result';
-import { Builder } from 'builder-pattern';
 import { Credentials } from './entity/credentials.entity';
 import { User } from '../user/user.entity';
-import { PassHash } from './entity/passHash.entity';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RefreshToken } from './entity/refresh-token.entity';
 import { RefreshTokenPayload } from '../shared/interface/interface';
 import { UnitOfWorkAbstract } from '../shared/uniOfWork/unitOfWork';
 import { RoleRepository } from './repository/role.repository';
@@ -123,10 +120,10 @@ export class AuthenticationService {
       refreshHash: refreshTokenHash,
       status: 'ativo',
       user: user,
-      created_at: date,
-      updated_at: date,
+      createdAt: date,
+      updatedAt: date,
       id: tokenId,
-      deleted_at: null,
+      deletedAt: null,
     });
 
     this.unitOfWork.state(refreshTokenCreated);
@@ -161,22 +158,88 @@ export class AuthenticationService {
     }
   }
 
+  async logout(sessionId: string, idUser: string) {
+    if (!sessionId) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    if (!idUser) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    const findAccessToken = await this.memory.hGetBy({
+      key: `sessionId:${sessionId}`,
+      field: 'accessToken',
+    });
+
+    if (!findAccessToken) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    const findRefreshToken = await this.memory.hGetBy({
+      key: `sessionId:${sessionId}`,
+      field: 'refreshToken',
+    });
+
+    if (!findRefreshToken) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    const decodedRefreshToken = this.jwtService.verify<any>(findRefreshToken, {
+      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+    });
+
+    if (!decodedRefreshToken) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    if (decodedRefreshToken.sub !== idUser) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    const findRefreshHash =
+      await this.refreshTokenRepository.findByRefreshTokenId(
+        decodedRefreshToken.tokenId,
+      );
+
+    if (!findRefreshHash) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    const compareRefreshToken = await argon2.verify(
+      findRefreshHash.refreshHash,
+      findRefreshToken,
+    );
+
+    if (!compareRefreshToken) {
+      throw new BadRequestException('Ops, você não está logado.');
+    }
+
+    try {
+      findRefreshHash.status = 'inativo';
+
+      await this.memory.hDelBy({
+        key: `sessionId:${sessionId}`,
+        field: 'accessToken',
+      });
+
+      await this.memory.hDelBy({
+        key: `sessionId:${sessionId}`,
+        field: 'refreshToken',
+      });
+
+      await this.unitOfWork.save();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Ops, erro ao tentar tirar sua sessão.',
+      );
+    }
+  }
+
   public async verifyRefreshToken(
     refreshTokenPayload: RefreshTokenPayload,
     sessionId: string,
   ) {
-    /*  const identifier = refreshTokenPayload.identifier;
-    const dateCreate = refreshTokenPayload.iat;
-    const dateExp = refreshTokenPayload.exp;
-    const role = refreshTokenPayload.role;
-    const userId = refreshTokenPayload.sub;
-    const tokenId = refreshTokenPayload.tokenId;
-    console.log('identifier: ' + identifier);
-    console.log('dateCreate: ' + dateCreate);
-    console.log('dateExp; ' + dateExp);
-    console.log('role: ' + role);
-    console.log('userId: ' + userId);
-    console.log('tokenId: ' + tokenId);*/
     if (
       !sessionId ||
       !refreshTokenPayload.identifier ||
@@ -184,7 +247,6 @@ export class AuthenticationService {
       !refreshTokenPayload.role ||
       !refreshTokenPayload.tokenId
     ) {
-      console.log(1);
       return null;
     }
 
@@ -203,7 +265,6 @@ export class AuthenticationService {
       );
 
     if (!findCredentials) {
-      console.log(2);
       return null;
     }
 
@@ -212,7 +273,6 @@ export class AuthenticationService {
     );
 
     if (!findUser) {
-      console.log(3);
       return null;
     }
 
@@ -228,7 +288,6 @@ export class AuthenticationService {
     }
 
     if (!findRefreshToken) {
-      console.log(4);
       return null;
     }
 
@@ -238,7 +297,6 @@ export class AuthenticationService {
     );
 
     if (!compareRefreshToken) {
-      console.log(5);
       return null;
     }
 
@@ -254,7 +312,6 @@ export class AuthenticationService {
     );
 
     if (!accessTokenCreated) {
-      console.log(6);
       return null;
     }
 
@@ -274,7 +331,6 @@ export class AuthenticationService {
     );
 
     if (!refreshTokenCreated) {
-      console.log(7);
       return null;
     }
 
@@ -287,9 +343,9 @@ export class AuthenticationService {
       user: findUser,
       status: 'ativo',
       refreshHash: refreshTokenHash,
-      created_at: date,
-      updated_at: date,
-      deleted_at: null,
+      createdAt: date,
+      updatedAt: date,
+      deletedAt: null,
     });
 
     try {
@@ -332,7 +388,14 @@ export class AuthenticationService {
       return Result.err('identifier inválido');
     }
 
-    return await this.credentialsRepository.findCredByIdentifier(identifier);
+    const credentials =
+      await this.credentialsRepository.findCredByIdentifier(identifier);
+
+    if (!credentials) {
+      return Result.err('Ops, credenciais não encontradas');
+    }
+
+    return Result.ok(credentials);
   }
 
   async verifyIdentifier(identifier: string) {

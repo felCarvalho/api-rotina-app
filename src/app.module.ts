@@ -32,6 +32,7 @@ import { TaskController } from './task/controllers/task.controller';
 import { VerifyTaskController } from './task/controllers/verify.controllers';
 import { CategoryController } from './category/controllers/category.controller';
 import { VerfiyCategoryController } from './category/controllers/verify.controllers';
+import { GetInfoUserModule } from './shared/orchestrators/get-info-user/get-info-user.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { VerfiyCategoryController } from './category/controllers/verify.controll
     ModuleCore,
     CategoryModule,
     CreateRotinaModule,
+    GetInfoUserModule,
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -105,6 +107,10 @@ export class AppModule implements NestModule {
       path: 'task/create',
       method: RequestMethod.POST,
     });
+    consumer.apply(AuthMiddleware).forRoutes({
+      path: 'info/user',
+      method: RequestMethod.GET,
+    });
     consumer
       .apply(AuthMiddleware)
       .forRoutes(TaskController, VerifyTaskController);
@@ -113,6 +119,10 @@ export class AppModule implements NestModule {
       .forRoutes(CategoryController, VerfiyCategoryController);
     consumer.apply(RefreshTokenMiddleware).forRoutes({
       path: 'auth/refresh',
+      method: RequestMethod.POST,
+    });
+    consumer.apply(AuthMiddleware).forRoutes({
+      path: 'auth/logout',
       method: RequestMethod.POST,
     });
   }
