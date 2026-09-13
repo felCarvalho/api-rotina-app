@@ -43,6 +43,7 @@ import { GetInfoUserModule } from './shared/orchestrators/get-info-user/get-info
         '.env.secrets.jwt',
         '.env',
         '.env.github.0Auth',
+        '.env.redis',
       ],
     }),
     TaskModule,
