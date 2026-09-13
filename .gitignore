@@ -41,6 +41,7 @@ lerna-debug.log*
 .env.database
 .env.secrets.jwt
 .env.github.0Auth
+.env.redis
 
 # temp directory
 .temp
