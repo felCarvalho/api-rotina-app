@@ -141,7 +141,6 @@ GITHUB_CLIENT_SECRET=seu_client_secret
 
 ```env
 URL_REDIS_LOCAL=redis://localhost:6379
-URL_REDIS_PRODC=redis://default:sua_senha@host:6379
 ```
 
 > ⚠️ Nunca commite arquivos `.env` no repositório. O `.gitignore` já está configurado para ignorá-los.

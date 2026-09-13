@@ -53,7 +53,7 @@ export class Memory implements OnModuleInit, OnModuleDestroy, MemoryAbstract {
 
   async onModuleInit() {
     this.client = createClient({
-      url: process.env.URL_REDIS_LOCAL ?? process.env.URL_REDIS_PRODC ?? '',
+      url: process.env.URL_REDIS_LOCAL ?? '',
     });
 
     this.client.on('error', (err: unknown) =>
