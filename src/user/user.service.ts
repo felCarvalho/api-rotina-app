@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User } from './user.entity';
 import { Result } from '../shared/result-pattern/result';
@@ -8,7 +12,17 @@ export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async findById(id: string) {
-    return await this.userRepository.findByUserId(id);
+    if (!id) {
+      return Result.err('Ops, id de usuario invalido');
+    }
+
+    const user = await this.userRepository.findByUserId(id);
+
+    if (!user) {
+      return Result.err('Ops, não ecnontramos seu usuario');
+    }
+
+    return Result.ok(user);
   }
 
   async findUsername(name: string) {

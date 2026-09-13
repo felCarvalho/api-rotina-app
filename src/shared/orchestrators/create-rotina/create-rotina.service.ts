@@ -37,11 +37,8 @@ export class CreateRotinaService {
         createRotinaDto.userId,
       );
 
-      if (!findUserExists) {
-        throw new BadRequestException({
-          error: 'Ops, usuario não encontrado',
-          success: false,
-        });
+      if (!findUserExists.success) {
+        throw new BadRequestException(findUserExists.error);
       }
 
       const findExistsTitleCategory =
@@ -60,7 +57,7 @@ export class CreateRotinaService {
       const createCategory = em.create(Category, {
         title: createRotinaDto.titleCategory,
         description: descriptionCategoy,
-        user: findUserExists,
+        user: findUserExists.data,
       });
 
       this.unitOfWork.state(createCategory);
@@ -81,7 +78,7 @@ export class CreateRotinaService {
         title: createRotinaDto.titleTask,
         description: descriptionTask,
         status: 'incompleta',
-        user: findUserExists,
+        user: findUserExists?.data,
         category: createCategory,
       });
 
