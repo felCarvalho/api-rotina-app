@@ -36,8 +36,8 @@ export async function seed() {
             const createRole = em.em.create(Role, {
               name: rules,
               slug: rules,
-              created_at: date,
-              updated_at: date,
+              createdAt: date,
+              updatedAt: date,
             });
 
             em.em.persist(createRole);
@@ -55,8 +55,8 @@ export async function seed() {
               const createPermissions = em.em.create(Permissions, {
                 slug: perm,
                 name: perm,
-                created_at: date,
-                updated_at: date,
+                createdAt: date,
+                updatedAt: date,
               });
 
               em.em.persist(createPermissions);
@@ -95,8 +95,8 @@ export async function seed() {
           const createPassHash = em.em.create(PassHash, {
             hash: '$argon2id$v=19$m=65536,p=4,t=3$lHGKyBykFEc6jwGBbI7SkQ$DtGzcxQVDDEdbGhUv4Dx0VuvuUYnVz44jgQ/5NAQT64',
             user: createUser,
-            updated_at: date,
-            created_at: date,
+            updatedAt: date,
+            createdAt: date,
           });
 
           em.em.persist(createPassHash);
@@ -130,46 +130,3 @@ export async function seed() {
 }
 
 seed();
-
-/*
-  for (const item of data) {
-    rolesPermission = Builder<RolesPermissions>()
-      .role(createRoles)
-      .permission(createPermission)
-      .created_at(date)
-      .updated_at(date)
-      .build();
-
-    createRoles.role.add(rolesPermission);
-  }
-
-  for (const item of data) {
-    createUser = Builder<User>().name('felipin').build();
-  }
-
-  for (const item of data) {
-    createUserRoles = Builder<UserRoles>()
-      .role(createRoles)
-      .created_at(date)
-      .updated_at(date)
-      .user(createUser)
-      .build();
-
-    createUser.roles.add(createUserRoles);
-  }
-
-  for (const item of data) {
-    createCred = Builder<Credentials>()
-      .identifier('')
-      .provider('')
-      .user(createUser)
-      .build();
-  }
-
-  for (const item of data) {
-    createPassHash = Builder<PassHash>()
-      .hash('')
-      .user(createUser)
-      .build();
-  }
-} */
