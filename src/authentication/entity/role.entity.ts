@@ -9,9 +9,9 @@ export const roleSchema = defineEntity({
     rolePermissions: () => p.oneToMany(RolesPermissions).mappedBy('role'),
     name: p.string(),
     slug: p.string().primary(),
-    created_at: p.datetime(),
-    updated_at: p.datetime(),
-    deleted_at: p.datetime().nullable(),
+    createdAt: p.datetime(),
+    updatedAt: p.datetime(),
+    deletedAt: p.datetime().nullable(),
   },
 });
 

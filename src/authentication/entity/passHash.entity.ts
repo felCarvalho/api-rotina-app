@@ -8,9 +8,9 @@ export const passHashSchema = defineEntity({
   properties: {
     user: () => p.oneToOne(User).primary(),
     hash: p.string(),
-    created_at: p.datetime(),
-    deleted_at: p.datetime().nullable(),
-    updated_at: p.datetime(),
+    createdAt: p.datetime(),
+    deletedAt: p.datetime().nullable(),
+    updatedAt: p.datetime(),
   },
 });
 

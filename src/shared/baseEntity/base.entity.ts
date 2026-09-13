@@ -5,8 +5,8 @@ export const BaseEntity = defineEntity({
   name: 'base',
   properties: {
     id: p.string().primary().defaultRaw('uuidv7()'),
-    created_at: p.datetime().defaultRaw('NOW()'),
-    updated_at: p.datetime().defaultRaw('NOW()'),
-    deleted_at: p.datetime().nullable(),
+    createdAt: p.datetime().defaultRaw('NOW()'),
+    updatedAt: p.datetime().defaultRaw('NOW()'),
+    deletedAt: p.datetime().nullable(),
   },
 });

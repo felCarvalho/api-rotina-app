@@ -110,8 +110,8 @@ export class CreateUserService {
       const createPassHash = em.create(PassHash, {
         hash: generatePassHash.data ?? '',
         user: user,
-        created_at: date,
-        updated_at: date,
+        createdAt: date,
+        updatedAt: date,
       });
 
       this.unitOfWork.state(createPassHash);

@@ -7,9 +7,9 @@ export const permissionsSchema = defineEntity({
   properties: {
     name: p.string(),
     slug: p.string().unique().primary(),
-    created_at: p.datetime(),
-    updated_at: p.datetime(),
-    deleted_at: p.datetime().nullable(),
+    createdAt: p.datetime(),
+    updatedAt: p.datetime(),
+    deletedAt: p.datetime().nullable(),
   },
 });
 
