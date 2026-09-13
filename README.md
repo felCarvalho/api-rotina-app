@@ -103,7 +103,7 @@ pnpm install
 
 ## Configuração
 
-O projeto utiliza 4 arquivos de variáveis de ambiente. Crie os arquivos na raiz do projeto:
+O projeto utiliza 5 arquivos de variáveis de ambiente. Crie os arquivos na raiz do projeto:
 
 ### `.env` — Configurações da aplicação
 
@@ -135,6 +135,13 @@ JWT_REFRESH_TOKEN_SECRET=seu_secret_refresh_token
 ```env
 GITHUB_CLIENT_ID=seu_client_id
 GITHUB_CLIENT_SECRET=seu_client_secret
+```
+
+### `.env.redis` — Conexão com Redis
+
+```env
+URL_REDIS_LOCAL=redis://localhost:6379
+URL_REDIS_PRODC=redis://default:sua_senha@host:6379
 ```
 
 > ⚠️ Nunca commite arquivos `.env` no repositório. O `.gitignore` já está configurado para ignorá-los.
