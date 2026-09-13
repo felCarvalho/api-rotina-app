@@ -112,6 +112,7 @@ API_PORT=3000
 POSTGRES_PORT=5432
 REDIS_PORT=6379
 SECRET_COOKIES=seu_secret_aqui
+ORIGIN_URL_LOCAL=http://localhost:4200
 ```
 
 ### `.env.database` — Conexão com PostgreSQL
