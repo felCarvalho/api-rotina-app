@@ -135,10 +135,11 @@ export class AuthenticationService {
         key: `sessionId:${sessionId}`,
         value: { accessToken, refreshToken },
       });
+
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
         field: 'accessToken',
-        seconds: 60 * 1,
+        seconds: 60 * 15,
       });
       await this.memory.hExp({
         key: `sessionId:${sessionId}`,
