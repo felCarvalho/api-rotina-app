@@ -79,7 +79,7 @@ export class AuthenticationService {
 
     const userRole = findUserRoles.userRoles
       .getItems()
-      .find((s) => s.role.slug === 'USER');
+      .find((s) => s.role.slug === 'ADMIN');
 
     const accessToken = await this.jwtService.signAsync({
       identifier: identifier,
