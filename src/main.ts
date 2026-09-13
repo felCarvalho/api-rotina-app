@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  console.log(process.env.ORIGIN_URL_LOCAL);
   app.enableCors({
     origin: [process.env.ORIGIN_URL_LOCAL],
     credentials: true,
@@ -29,6 +29,7 @@ async function bootstrap() {
     jsonDocumentUrl: 'swagger/json',
   });
 
+  console.log(process.env.PORT);
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
