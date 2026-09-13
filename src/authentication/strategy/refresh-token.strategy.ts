@@ -25,7 +25,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
 
   validate(req: Request, payload: RefreshTokenPayload) {
     return {
-      sessionId: req.cookies.sessionId,
+      sessionId: req.signedCookies.sessionId,
       payload: payload,
     };
   }

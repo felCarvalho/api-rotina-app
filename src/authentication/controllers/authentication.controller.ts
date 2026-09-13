@@ -50,7 +50,7 @@ export class AuthenticationController {
     @Res({ passthrough: true }) res: Response,
   ) {
     res.clearCookie('sessionId');
-    const { sessionId } = req.cookies;
+    const { sessionId } = req.signedCookies;
     return await this.service.logout(sessionId, user.sub);
   }
 

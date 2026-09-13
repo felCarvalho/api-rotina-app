@@ -11,7 +11,7 @@ import { MemoryAbstract } from '../shared/redis/redis';
 export class RefreshTokenMiddleware implements NestMiddleware {
   constructor(private readonly memory: MemoryAbstract) {}
   async use(req: Request, res: Response, next: NextFunction) {
-    const cookies: string | undefined = req.cookies.sessionId;
+    const cookies: string | undefined = req.signedCookies.sessionId;
     console.log('cookiesRefresh:' + cookies);
 
     if (!cookies) {

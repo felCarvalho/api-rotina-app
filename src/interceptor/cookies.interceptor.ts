@@ -18,6 +18,7 @@ export class CookiesTokensInterceptor implements NestInterceptor {
           httpOnly: true,
           sameSite: 'lax',
           path: '/',
+          signed: true,
         });
 
         return value;
