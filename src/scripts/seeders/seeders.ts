@@ -78,11 +78,29 @@ export async function seed() {
         const date = new Date();
 
         await RequestContext.create(em.em, async () => {
+          const findUser = await em.em.findOne(User, {
+            name: createUserData.name,
+          });
+
+          if (findUser) {
+            console.log(`User ${createUserData.name} já existe`);
+            return;
+          }
+
           const createUser = em.em.create(User, {
             name: createUserData.name,
           });
 
           em.em.persist(createUser);
+
+          const findCred = await em.em.findOne(Credentials, {
+            identifier: createUserData.identifier,
+          });
+
+          if (findCred) {
+            console.log(`Credentials ${createUserData.identifier} já existe`);
+            return;
+          }
 
           const createCred = em.em.create(Credentials, {
             identifier: createUserData.identifier,
@@ -102,7 +120,7 @@ export async function seed() {
           em.em.persist(createPassHash);
 
           const findRole = await em.em.findOne(Role, {
-            slug: RULES.user,
+            slug: RULES.admin,
           });
 
           if (!findRole) {

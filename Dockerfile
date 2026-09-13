@@ -14,4 +14,4 @@ COPY package*.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --production --ignore-scripts
 COPY --from=builder /app/dist ./dist
 EXPOSE 3333
-CMD ["sh", "-c", "pnpm migration:up && node ./dist/main.js"]
+CMD ["sh", "-c", "pnpm migration:up && pnpm create:roles-permissions && pnpm create:user && pnpm && node ./dist/main.js"]
