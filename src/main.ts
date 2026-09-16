@@ -15,10 +15,14 @@ async function bootstrap() {
   app.use(cookieParser(process.env.SECRET_COOKIES));
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('API Rotina App')
+    .setDescription('API REST para gerenciamento de rotinas e tarefas')
     .setVersion('1.0')
-    .addTag('cats')
+    .addTag('auth', 'Autenticação e sessões')
+    .addTag('task', 'Gerenciamento de tarefas')
+    .addTag('category', 'Gerenciamento de categorias')
+    .addTag('user', 'Dados do usuário')
+    .addTag('verify', 'Verificação de dados existentes')
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);

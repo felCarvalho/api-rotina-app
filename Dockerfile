@@ -13,5 +13,5 @@ ENV NODE_ENV=production
 COPY package*.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --production --ignore-scripts
 COPY --from=builder /app/dist ./dist
-EXPOSE 3333
+EXPOSE 3000
 CMD ["sh", "-c", "pnpm migration:up && pnpm create:roles-permissions && pnpm create:user && node ./dist/main.js"]

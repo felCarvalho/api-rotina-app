@@ -7,7 +7,7 @@
   <a href="https://www.typescriptlang.org/" target="_blank"><img src="https://img.shields.io/badge/TypeScript-v5.7-blue" alt="TypeScript" /></a>
   <a href="https://www.postgresql.org/" target="_blank"><img src="https://img.shields.io/badge/PostgreSQL-latest-blue" alt="PostgreSQL" /></a>
   <a href="https://redis.io/" target="_blank"><img src="https://img.shields.io/badge/Redis-v8-red" alt="Redis" /></a>
-  <a href="https://github.com/felCarvalho/api-rotina-app/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-MIT-green" alt="License" /></a>
+  <a href="https://github.com/felCarvalho/api-rotina-app/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-UNLICENSED-red" alt="License" /></a>
 </p>
 
 <p align="center">
@@ -248,7 +248,7 @@ docker-compose down
 2. LocalStrategy valida credenciais via Argon2
 3. Gera JWT access token (15min) + refresh token (24h)
 4. Armazena tokens no Redis: sessionId:{uuid} → { accessToken, refreshToken }
-5. Retorna sessionId como cookie httpOnly (sameSite: lax)
+5. Retorna sessionId como cookie httpOnly (sameSite: none, secure: true)
 ```
 
 ### Fluxo de Refresh
@@ -351,7 +351,7 @@ src/
 │   ├── controllers/                  Authentication + Verify controllers
 │   ├── guards/                       JwtAuthGuard, JwtRefreshAuthGuard, LocalAuthGuard
 │   ├── strategy/                     LocalStrategy, TokenStrategy, RefreshTokenStrategy
-│   └── authencation.service.ts       Lógica de autenticação
+│   └── authentication.service.ts      Lógica de autenticação
 ├── scripts/
 │   ├── seeders/                      Seed de roles, permissions e usuários
 │   └── migrations/                   CLI de migrações
@@ -508,7 +508,7 @@ pnpm run migration:down
 
 ## Licença
 
-Este projeto está licenciado sob a licença MIT.
+Este projeto não possui licença pública. Todos os direitos reservados.
 
 > ⚠️ **Projeto criado exclusivamente para fins de aprendizado.** Não é recomendado para uso em produção.
 
