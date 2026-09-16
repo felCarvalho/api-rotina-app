@@ -22,14 +22,14 @@ export class GetInfoUserService {
     const user = await this.userService.findById(userId);
 
     if (!user.success) {
-      throw new NotFoundException(user.error);
+      throw new NotFoundException({ ...user });
     }
 
     const idenfitifer =
       await this.authenticationService.findCredentialsByIdentifier(identifier);
 
     if (!idenfitifer.success) {
-      throw new NotFoundException(idenfitifer.error);
+      throw new NotFoundException({ ...idenfitifer });
     }
 
     return Result.ok({
